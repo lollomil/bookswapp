@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookSwap - Marketplace Libri Scolastici</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        /* Auth Forms */
+        .auth-container {
+            max-width: 400px;
+            margin: 100px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .auth-title {
+            font-size: 24px;
+            margin-bottom: 30px;
+            text-align: center;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .auth-switch {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+        }
+
+        .auth-switch a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* Add Book Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            color: #333;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .file-upload {
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .file-upload:hover {
+            background: #f8f9ff;
+        }
+
+        .file-upload input {
+            display: none;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 200px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+
+        /* Books Grid */
+        .books-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .book-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .book-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+        }
+
+        .book-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            background: #f3f4f6;
+        }
+
+        .book-info {
+            padding: 15px;
+        }
+
+        .book-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .book-price {
+            font-size: 20px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .book-seller {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: white;
+        }
+
+        .empty-state h2 {
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        /* Book Detail Modal */
+        .book-detail {
+            padding: 20px;
+        }
+
+        .detail-image {
+            width: 100%;
+            max-height: 400px;
+            object-fit: contain;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .detail-section {
+            margin-bottom: 20px;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        .detail-text {
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Auth Container -->
+    <div id="authContainer" class="auth-container">
+        <!-- Login Form -->
+        <div id="loginForm">
+            <h2 class="auth-title">Accedi a BookSwap</h2>
+            <form onsubmit="login(event)">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="loginEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Accedi</button>
+            </form>
+            <div class="auth-switch">
+                Non hai un account? <a href="#" onclick="showRegister()">Registrati</a>
+            </div>
+        </div>
+
+        <!-- Register Form -->
+        <div id="registerForm" class="hidden">
+            <h2 class="auth-title">Crea un Account</h2>
+            <form onsubmit="register(event)">
+                <div class="form-group">
+                    <label>Nome</label>
+                    <input type="text" id="registerName" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="registerEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="registerPassword" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Registrati</button>
+            </form>
+            <div class="auth-switch">
+                Hai già un account? <a href="#" onclick="showLogin()">Accedi</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" class="hidden">
+        <div class="container">
+            <!-- Header -->
+            <div class="header">
+                <div class="logo">📚 BookSwap</div>
+                <div class="user-info">
+                    <span id="userName"></span>
+                    <button class="btn btn-primary" onclick="openAddBookModal()">+ Vendi un Libro</button>
+                    <button class="btn btn-secondary" onclick="logout()">Esci</button>
+                </div>
+            </div>
+
+            <!-- Books Grid -->
+            <div id="booksContainer">
+                <div class="empty-state">
+                    <h2>Nessun libro disponibile</h2>
+                    <p>Sii il primo a vendere un libro!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Book Modal -->
+    <div id="addBookModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Vendi un Libro</h2>
+                <button class="close-btn" onclick="closeAddBookModal()">&times;</button>
+            </div>
+            <form onsubmit="addBook(event)">
+                <div class="file-upload" onclick="document.getElementById('bookImage').click()">
+                    <input type="file" id="bookImage" accept="image/*" onchange="previewImage(event)" required>
+                    <div id="uploadText">
+                        📷 Clicca per caricare la foto del libro
+                    </div>
+                    <img id="imagePreview" class="preview-image hidden">
+                </div>
+                <div class="form-group">
+                    <label>Titolo del libro</label>
+                    <input type="text" id="bookTitle" required>
+                </div>
+                <div class="form-group">
+                    <label>Prezzo (€)</label>
+                    <input type="number" id="bookPrice" step="0.01" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label>Descrizione</label>
+                    <textarea id="bookDescription" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Pubblica</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Book Detail Modal -->
+    <div id="bookDetailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Dettagli Libro</h2>
+                <button class="close-btn" onclick="closeBookDetail()">&times;</button>
+            </div>
+            <div class="book-detail" id="bookDetailContent"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, push, set, onValue, get } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDtW3xwnUZ3nfpZjS7PnwLtvZofoviVbvg",
+            authDomain: "bookswap-3f596.firebaseapp.com",
+            databaseURL: "https://bookswap-3f596-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "bookswap-3f596",
+            storageBucket: "bookswap-3f596.firebasestorage.app",
+            messagingSenderId: "959429195622",
+            appId: "1:959429195622:web:c9a81bc629de10b4b73aa7",
+            measurementId: "G-C2MBTYEX19"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const auth = getAuth(app);
+
+        let currentUser = null;
+        let books = [];
+
+        // Check auth state on load
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = {
+                    uid: user.uid,
+                    email: user.email,
+                    name: user.displayName || user.email.split('@')[0]
+                };
+                showMainApp();
+                loadBooks();
+            } else {
+                currentUser = null;
+                document.getElementById('mainApp').classList.add('hidden');
+                document.getElementById('authContainer').classList.remove('hidden');
+            }
+        });
+
+        // Load books from Firebase
+        function loadBooks() {
+            const booksRef = ref(database, 'books');
+            onValue(booksRef, (snapshot) => {
+                books = [];
+                snapshot.forEach((childSnapshot) => {
+                    books.push({
+                        id: childSnapshot.key,
+                        ...childSnapshot.val()
+                    });
+                });
+                renderBooks();
+            });
+        }
+
+        window.showRegister = function showRegister() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.remove('hidden');
+        }
+
+        window.showLogin = function showLogin() {
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('loginForm').classList.remove('hidden');
+        }
+
+        window.register = async function register(e) {
+            e.preventDefault();
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                
+                // Save user info to database
+                await set(ref(database, 'users/' + user.uid), {
+                    name: name,
+                    email: email
+                });
+
+                alert('Registrazione completata con successo!');
+            } catch (error) {
+                alert('Errore durante la registrazione: ' + error.message);
+            }
+        }
+
+        window.login = async function login(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                alert('Errore durante il login: ' + error.message);
+            }
+        }
+
+        function showMainApp() {
+            document.getElementById('authContainer').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            document.getElementById('userName').textContent = `Ciao, ${currentUser.name}!`;
+        }
+
+        window.logout = async function logout() {
+            try {
+                await signOut(auth);
+                books = [];
+                document.getElementById('loginEmail').value = '';
+                document.getElementById('loginPassword').value = '';
+            } catch (error) {
+                alert('Errore durante il logout: ' + error.message);
+            }
+        }
+
+        window.openAddBookModal = function openAddBookModal() {
+            document.getElementById('addBookModal').classList.add('active');
+        }
+
+        window.closeAddBookModal = function closeAddBookModal() {
+            document.getElementById('addBookModal').classList.remove('active');
+            document.getElementById('bookImage').value = '';
+            document.getElementById('bookTitle').value = '';
+            document.getElementById('bookPrice').value = '';
+            document.getElementById('bookDescription').value = '';
+            document.getElementById('imagePreview').classList.add('hidden');
+            document.getElementById('uploadText').style.display = 'block';
+        }
+
+        window.previewImage = function previewImage(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const preview = document.getElementById('imagePreview');
+                    preview.src = event.target.result;
+                    preview.classList.remove('hidden');
+                    document.getElementById('uploadText').style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        window.addBook = async function addBook(e) {
+            e.preventDefault();
+            
+            const imageFile = document.getElementById('bookImage').files[0];
+            const reader = new FileReader();
+            
+            reader.onload = async function(event) {
+                try {
+                    const book = {
+                        title: document.getElementById('bookTitle').value,
+                        price: parseFloat(document.getElementById('bookPrice').value),
+                        description: document.getElementById('bookDescription').value,
+                        image: event.target.result,
+                        seller: currentUser.name,
+                        sellerUid: currentUser.uid,
+                        createdAt: Date.now()
+                    };
+                    
+                    // Save to Firebase
+                    const booksRef = ref(database, 'books');
+                    await push(booksRef, book);
+                    
+                    closeAddBookModal();
+                    alert('Libro pubblicato con successo!');
+                } catch (error) {
+                    alert('Errore durante la pubblicazione: ' + error.message);
+                }
+            };
+            
+            reader.readAsDataURL(imageFile);
+        }
+
+        function renderBooks() {
+            const container = document.getElementById('booksContainer');
+            
+            if (books.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h2>Nessun libro disponibile</h2>
+                        <p>Sii il primo a vendere un libro!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = '<div class="books-grid"></div>';
+            const grid = container.querySelector('.books-grid');
+
+            books.forEach(book => {
+                const card = document.createElement('div');
+                card.className = 'book-card';
+                card.onclick = () => showBookDetail(book);
+                card.innerHTML = `
+                    <img src="${book.image}" alt="${book.title}" class="book-image">
+                    <div class="book-info">
+                        <div class="book-title">${book.title}</div>
+                        <div class="book-price">€${book.price.toFixed(2)}</div>
+                        <div class="book-seller">Venduto da ${book.seller}</div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        window.showBookDetail = function showBookDetail(book) {
+            const content = document.getElementById('bookDetailContent');
+            content.innerHTML = `
+                <img src="${book.image}" alt="${book.title}" class="detail-image">
+                <div class="detail-section">
+                    <h2 style="color: #333; margin-bottom: 10px;">${book.title}</h2>
+                    <div class="book-price" style="font-size: 28px;">€${book.price.toFixed(2)}</div>
+                </div>
+                <div class="detail-section">
+                    <div class="detail-label">Descrizione</div>
+                    <div class="detail-text">${book.description}</div>
+                </div>
+                <div class="detail-section">
+                    <div class="detail-label">Venditore</div>
+                    <div class="detail-text">${book.seller}</div>
+                </div>
+                <button class="btn btn-primary" style="width: 100%; padding: 15px; font-size: 16px;" onclick="contactSeller()">
+                    Contatta il Venditore
+                </button>
+            `;
+            document.getElementById('bookDetailModal').classList.add('active');
+        }
+
+        window.closeBookDetail = function closeBookDetail() {
+            document.getElementById('bookDetailModal').classList.remove('active');
+        }
+
+        window.contactSeller = function contactSeller() {
+            alert('Funzionalità di messaggistica in arrivo! Per ora puoi contattare il venditore via email.');
+        }
+    </script>
+</body>
+</html>
